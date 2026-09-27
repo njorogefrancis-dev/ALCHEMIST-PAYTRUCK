@@ -1,0 +1,14 @@
+# Build output
+bin/
+obj/
+publish/
+installer_output/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,140 @@
+<Window x:Class="AlchemistPayTrack.ReceiptWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Payment Receipt"
+        Height="720" Width="520"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}">
+
+    <Window.Resources>
+        <LinearGradientBrush x:Key="ReceiptHeaderGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#4F46E5" Offset="0"/>
+            <GradientStop Color="#4338CA" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <DockPanel>
+        <!-- Action bar (not part of the printed/exported area) -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="16,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Print" Click="PrintButton_Click" Margin="0,0,10,0"
+                        Visibility="{Binding CanPrint, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                <Button Content="Export as PDF" Click="ExportButton_Click" Style="{StaticResource SuccessButton}" Margin="0,0,10,0"
+                        Visibility="{Binding CanPrint, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVis}}"/>
+                <Button Content="Close" Click="CloseButton_Click" Style="{StaticResource NeutralButton}"/>
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- Everything inside PrintArea is exactly what gets sent to the
+                 printer via PrintVisual, so it's kept free of any app-chrome
+                 (no scrollbars, no action buttons) for a clean physical
+                 receipt. -->
+            <Border x:Name="PrintArea" Background="White" Margin="20" MaxWidth="440"
+                    BorderBrush="#E5E7EB" BorderThickness="1">
+                <StackPanel>
+                    <!-- Gradient header -->
+                    <Border Background="{StaticResource ReceiptHeaderGradient}" Padding="24,20">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Receipt.Settings.CompanyName}" FontSize="20" FontWeight="Bold"
+                                       Foreground="White"/>
+                            <TextBlock Text="PAYMENT RECEIPT" FontSize="12" Foreground="#E0E7FF" Margin="0,4,0,0"
+                                       FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Margin="24,18,24,24">
+                        <!-- Company details strip -->
+                        <TextBlock Text="{Binding Receipt.CompanyDetailsLine}" FontSize="10" Foreground="#6B7280"
+                                   TextWrapping="Wrap" Margin="0,0,0,16"
+                                   Visibility="{Binding Receipt.CompanyDetailsLine, Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- Receipt number + date -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="RECEIPT NO." FontSize="9" Foreground="#9CA3AF" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Receipt.ReceiptNumber}" FontSize="14" FontWeight="Bold"
+                                           Foreground="#111827"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                <TextBlock Text="DATE" FontSize="9" Foreground="#9CA3AF" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding Receipt.FormattedDate}" FontSize="12" Foreground="#111827"
+                                           HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#E5E7EB" Margin="0,0,0,16"/>
+
+                        <!-- Worker details -->
+                        <TextBlock Text="PAID TO" FontSize="9" Foreground="#9CA3AF" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding Receipt.WorkerName}" FontSize="16" FontWeight="Bold" Foreground="#111827"/>
+                        <TextBlock Foreground="#6B7280" FontSize="11" Margin="0,2,0,16">
+                            <Run Text="Worker ID: "/><Run Text="{Binding Receipt.WorkerId}"/>
+                            <Run Text="   •   Role: "/><Run Text="{Binding Receipt.JobRoleDisplay}"/>
+                        </TextBlock>
+
+                        <!-- Amount - the visual focal point -->
+                        <Border Background="#EEF2FF" CornerRadius="8" Padding="18,14" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="AMOUNT PAID" FontSize="9" Foreground="#4F46E5" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Receipt.FormattedAmount}" FontSize="28" FontWeight="Bold"
+                                           Foreground="#4338CA" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Payment method -->
+                        <Grid Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="PAYMENT METHOD" FontSize="9" Foreground="#9CA3AF" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding Receipt.PaymentMethod}" FontSize="12" Foreground="#111827"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right"
+                                        Visibility="{Binding Receipt.HasMpesaCode, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="M-PESA CODE" FontSize="9" Foreground="#9CA3AF" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding Receipt.MpesaCodeDisplay}" FontSize="12" Foreground="#111827"
+                                           HorizontalAlignment="Right"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Rectangle Height="1" Fill="#E5E7EB" Margin="0,16"/>
+
+                        <!-- Signature lines for a physical-receipt feel -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <Rectangle Height="1" Fill="#D1D5DB" Margin="0,24,0,4"/>
+                                <TextBlock Text="Received by" FontSize="9" Foreground="#9CA3AF" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <Rectangle Height="1" Fill="#D1D5DB" Margin="0,24,0,4"/>
+                                <TextBlock Text="Authorized by" FontSize="9" Foreground="#9CA3AF" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="{Binding Receipt.RecordedBy, StringFormat='Recorded by {0}'}"
+                                   FontSize="9" Foreground="#9CA3AF" Margin="0,18,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Footer -->
+                    <Border Background="#F9FAFB" Padding="16,10" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0">
+                        <TextBlock Text="{Binding FooterLine}" FontSize="7" Foreground="#9CA3AF"
+                                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

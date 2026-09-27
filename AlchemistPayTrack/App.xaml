@@ -1,0 +1,309 @@
+<Application x:Class="AlchemistPayTrack.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:AlchemistPayTrack">
+    <!--
+        No StartupUri here on purpose: App.xaml.cs.OnStartup builds the DI
+        container first, applies the saved color theme, then constructs
+        MainWindow manually and assigns its DataContext. Setting StartupUri
+        would create a second, un-wired window.
+
+        The actual theme color brushes (PrimaryBrush, CardBackgroundBrush,
+        etc.) are NOT defined here - they live in Themes/Light.xaml and
+        Themes/Dark.xaml, and ThemeManager (Presentation/ThemeManager.cs)
+        merges the right one in at startup / on toggle. Everything below
+        references them via DynamicResource so a theme switch updates the
+        whole UI live.
+    -->
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <local:BoolToVisibilityConverter x:Key="BoolToVis"/>
+            <local:PasswordStrengthToWidthConverter x:Key="PwStrengthToWidth"/>
+            <local:PasswordStrengthToBrushConverter x:Key="PwStrengthToBrush"/>
+            <local:PasswordStrengthToLabelConverter x:Key="PwStrengthToLabel"/>
+
+            <!-- ============ Buttons ============ -->
+            <Style TargetType="Button">
+                <Setter Property="Padding" Value="16,8"/>
+                <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="5"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Background" Value="{DynamicResource NeutralBrush}"/>
+                        <Setter Property="Opacity" Value="0.5"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="{DynamicResource SuccessBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource SuccessHoverBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="{DynamicResource DangerBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource DangerHoverBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="NeutralButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="{DynamicResource NeutralBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource NeutralHoverBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <!-- ============ Inputs ============ -->
+            <Style TargetType="TextBox">
+                <Setter Property="Padding" Value="8,6"/>
+                <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CaretBrush" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style TargetType="ComboBox">
+                <Setter Property="Padding" Value="8,6"/>
+                <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style TargetType="PasswordBox">
+                <Setter Property="Padding" Value="8,6"/>
+                <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            </Style>
+
+            <!-- ============ Data grid ============ -->
+            <Style TargetType="DataGrid">
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="RowHeight" Value="32"/>
+                <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+                <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="RowBackground" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="HeadersVisibility" Value="Column"/>
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+                <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            </Style>
+
+            <!-- ============ Scrollable panels ============ -->
+            <Style x:Key="ScrollablePanel" TargetType="ScrollViewer">
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+                <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            </Style>
+
+            <Style TargetType="DataGridColumnHeader">
+                <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Padding" Value="10,8"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            </Style>
+
+            <!-- ============ Layout helpers ============ -->
+            <Style x:Key="Card" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="8"/>
+                <Setter Property="Padding" Value="18"/>
+            </Style>
+
+            <Style x:Key="SectionHeader" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="Margin" Value="0,0,0,12"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style x:Key="FieldLabel" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="Margin" Value="0,0,0,4"/>
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+
+            <Style x:Key="BodyText" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style x:Key="MutedText" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            </Style>
+
+            <!-- ============ Sidebar navigation button ============ -->
+            <Style x:Key="NavButton" TargetType="Button">
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Padding" Value="16,12"/>
+                <Setter Property="Margin" Value="8,2"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{DynamicResource SidebarForegroundBrush}"/>
+                <Setter Property="FontSize" Value="13.5"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{DynamicResource SidebarHoverBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="NavButtonActive" TargetType="Button" BasedOn="{StaticResource NavButton}">
+                <Setter Property="Background" Value="{DynamicResource SidebarActiveBrush}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <!-- ============ Stat card (dashboard) ============ -->
+            <Style x:Key="StatValue" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="28"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style x:Key="StatLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12.5"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="Margin" Value="0,4,0,0"/>
+            </Style>
+
+            <!-- ============ Page title ============ -->
+            <Style x:Key="PageTitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="22"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+            </Style>
+
+            <Style x:Key="PageSubtitle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="Margin" Value="0,2,0,0"/>
+            </Style>
+
+            <!-- ============ Status badges ============ -->
+            <Style x:Key="BadgeBase" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Padding" Value="10,3"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+            </Style>
+
+            <Style x:Key="BadgeSuccess" TargetType="Border" BasedOn="{StaticResource BadgeBase}">
+                <Setter Property="Background" Value="{DynamicResource BadgeSuccessBg}"/>
+            </Style>
+            <Style x:Key="BadgeDanger" TargetType="Border" BasedOn="{StaticResource BadgeBase}">
+                <Setter Property="Background" Value="{DynamicResource BadgeDangerBg}"/>
+            </Style>
+            <Style x:Key="BadgeWarning" TargetType="Border" BasedOn="{StaticResource BadgeBase}">
+                <Setter Property="Background" Value="{DynamicResource BadgeWarningBg}"/>
+            </Style>
+            <Style x:Key="BadgeInfo" TargetType="Border" BasedOn="{StaticResource BadgeBase}">
+                <Setter Property="Background" Value="{DynamicResource BadgeInfoBg}"/>
+            </Style>
+            <Style x:Key="BadgeNeutral" TargetType="Border" BasedOn="{StaticResource BadgeBase}">
+                <Setter Property="Background" Value="{DynamicResource BadgeNeutralBg}"/>
+            </Style>
+
+            <Style x:Key="BadgeTextSuccess" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{DynamicResource BadgeSuccessFg}"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+            <Style x:Key="BadgeTextDanger" TargetType="TextBlock" BasedOn="{StaticResource BadgeTextSuccess}">
+                <Setter Property="Foreground" Value="{DynamicResource BadgeDangerFg}"/>
+            </Style>
+            <Style x:Key="BadgeTextWarning" TargetType="TextBlock" BasedOn="{StaticResource BadgeTextSuccess}">
+                <Setter Property="Foreground" Value="{DynamicResource BadgeWarningFg}"/>
+            </Style>
+            <Style x:Key="BadgeTextInfo" TargetType="TextBlock" BasedOn="{StaticResource BadgeTextSuccess}">
+                <Setter Property="Foreground" Value="{DynamicResource BadgeInfoFg}"/>
+            </Style>
+            <Style x:Key="BadgeTextNeutral" TargetType="TextBlock" BasedOn="{StaticResource BadgeTextSuccess}">
+                <Setter Property="Foreground" Value="{DynamicResource BadgeNeutralFg}"/>
+            </Style>
+
+            <!-- ============ Tooltip ============ -->
+            <Style TargetType="ToolTip">
+                <Setter Property="Background" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="HasDropShadow" Value="True"/>
+            </Style>
+
+            <!-- ============ Loading skeleton placeholder ============ -->
+            <Style x:Key="Skeleton" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource SkeletonBrush}"/>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="Height" Value="14"/>
+            </Style>
+
+            <!-- ============ Empty state ============ -->
+            <Style x:Key="EmptyStateIcon" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="40"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="Opacity" Value="0.5"/>
+                <Setter Property="Margin" Value="0,0,0,10"/>
+            </Style>
+
+            <Style x:Key="EmptyStateText" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+            </Style>
+
+            <!-- ============ KPI widget card ============ -->
+            <Style x:Key="KpiIconBadge" TargetType="Border">
+                <Setter Property="Width" Value="42"/>
+                <Setter Property="Height" Value="42"/>
+                <Setter Property="CornerRadius" Value="10"/>
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
